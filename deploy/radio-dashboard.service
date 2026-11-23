@@ -1,0 +1,22 @@
+[Unit]
+Description=Radio cluster signal dashboard (RTL-SDR)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+# 改成实际运行用户；该用户需要有 RTL-SDR 的 USB 访问权限（通常加入 plugdev）
+User=radio
+Group=plugdev
+WorkingDirectory=/opt/radio
+Environment=PYTHONUNBUFFERED=1
+# Linux 下头文件/库一般在 /usr；若使用 /usr/local 请改这里
+Environment=BREW_PREFIX=/usr
+ExecStart=/opt/radio/.venv/bin/python /opt/radio/dashboard.py --host 127.0.0.1 --port 8787
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  macOS launchd 模板。
+  1. 把下面所有 __PROJECT_DIR__ / __PYTHON__ 替换成实际值；
+  2. 复制到 ~/Library/LaunchAgents/com.radio.dashboard.plist；
+  3. launchctl load ~/Library/LaunchAgents/com.radio.dashboard.plist
+  停止: launchctl unload ~/Library/LaunchAgents/com.radio.dashboard.plist
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.radio.dashboard</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>__PYTHON__</string>
+    <string>__PROJECT_DIR__/dashboard.py</string>
+    <string>--host</string>
+    <string>127.0.0.1</string>
+    <string>--port</string>
+    <string>8787</string>
+  </array>
+
+  <key>WorkingDirectory</key>
+  <string>__PROJECT_DIR__</string>
+
+  <!-- 如果是 Intel Mac 或非标准 Homebrew 路径，改这里 -->
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>BREW_PREFIX</key>
+    <string>/opt/homebrew</string>
+  </dict>
+
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+  <key>ThrottleInterval</key>
+  <integer>10</integer>
+
+  <key>StandardOutPath</key>
+  <string>__PROJECT_DIR__/dashboard.log</string>
+  <key>StandardErrorPath</key>
+  <string>__PROJECT_DIR__/dashboard.err.log</string>
+</dict>
+</plist>

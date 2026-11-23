@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SDR数据对讲系统信号监控</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="mark"><span></span></div>
+    <div>
+      <h1>SDR数据对讲系统信号监控</h1>
+      <p class="sub">UHF 421.1–423.4 MHz · 33 频点 · 差分 RSSI</p>
+    </div>
+  </div>
+  <nav class="tabs" id="tabs">
+    <button data-tab="overview" class="on">总览</button>
+    <button data-tab="channel">信道分析</button>
+  </nav>
+  <div class="status">
+    <span class="dev" id="devPill"><i></i><b>ONLINE</b></span>
+    <button class="iconbtn" id="themeBtn" title="切换主题" aria-label="切换主题"></button>
+    <span class="clock" id="clock">--:--:--</span>
+  </div>
+</header>
+
+<div id="viewOverview">
+<section class="topgrid">
+  <article class="sc status" id="verdictCard" data-state="init">
+    <div class="sc-hd">
+      <span class="sc-name">STATUS</span>
+      <span class="sc-led"></span>
+      <span class="sc-state" id="vState">—</span>
+    </div>
+    <div class="st-title" id="vTitle">正在启动</div>
+    <div class="st-sub" id="vSub">读取设备与历史基线…</div>
+    <div class="st-meta">
+      <div><span>ACTIVE</span><b id="vActive">–</b></div>
+      <div><span>CLIP</span><b id="vClip">–</b></div>
+      <div><span>UPTIME</span><b id="vUp">–</b></div>
+    </div>
+    <div class="st-issues" id="issues"></div>
+  </article>
+  <div class="sitecards" id="siteCards"></div>
+</section>
+
+<section class="panel matrix">
+  <div class="panel-hd">
+    <h2>全部信道明细<span class="ch-count">（<span id="chCount">–</span> 个频点）</span></h2>
+    <div class="toolbar" id="chanToolbar">
+      <span class="tb-label">曲线时间窗</span>
+      <button data-range="60">1m</button>
+      <button data-range="300" class="on">5m</button>
+      <button data-range="900">15m</button>
+      <button data-range="1800">30m</button>
+    </div>
+  </div>
+  <p class="matrix-note">
+    每张卡片的大字是该信道当前电平<b>高出自身长期噪声底的 dB 数</b>（不是绝对 dBm），曲线为所选时间窗口内的信号强度（每桶取峰值）。
+    曲线纵向按各卡片窗口峰值自适应缩放，右上角标注窗口峰值。点击任一卡片可打开该频点的单信道分析。
+  </p>
+  <div id="sites"></div>
+</section>
+</div>
+
+<div id="viewChannel" hidden>
+  <section class="detail-layout">
+    <aside class="panel ch-picker">
+      <div class="ch-picker-hd">
+        <input id="chSearch" class="ch-search" type="search" placeholder="搜索频点 / 站点 / 编号" autocomplete="off">
+        <div class="ch-filter" id="chFilter">
+          <button data-filter="all" class="on">全部</button>
+          <button data-filter="ctrl">控制</button>
+          <button data-filter="biz">业务</button>
+        </div>
+      </div>
+      <div class="ch-items" id="chItems"></div>
+    </aside>
+
+    <div class="detail-main">
+      <section class="panel detail-panel">
+        <div class="panel-hd">
+          <h2><span id="detailName">信道分析</span><span class="detail-sub" id="detailSub"></span></h2>
+          <div class="toolbar" id="detailRange">
+            <span class="tb-label">时间范围</span>
+            <button data-range="900">15m</button>
+            <button data-range="1800">30m</button>
+            <button data-range="3600" class="on">1h</button>
+            <button data-range="10800">3h</button>
+          </div>
+        </div>
+        <div class="detail-stats" id="detailStats"></div>
+        <div class="detail-chartwrap" id="detailChartWrap">
+          <canvas id="detailChart"></canvas>
+          <div class="detail-empty" id="detailEmpty">正在加载…</div>
+          <div class="chart-tip" id="chartTip" hidden></div>
+        </div>
+        <div class="detail-legend">
+          <span><b class="lg-raw"></b>分桶发射峰值</span>
+          <span><b class="lg-trend"></b>滑动中值（趋势）</span>
+          <span><b class="lg-base"></b>早先基线</span>
+          <span><b class="lg-recent"></b>最近观察窗</span>
+        </div>
+        <div class="detail-verdict" id="detailVerdict"></div>
+      </section>
+      <p class="detail-note">
+        只统计“该信道正在发射”的样本（高于自身噪底 6 dB），空闲时段不参与比较，避免把“没人使用”误判成“信号下降”。
+        趋势线是这些发射峰值的滑动中值；基线取较早时段的中值，最近观察窗与它比较，下降 3 dB 提醒、6 dB 告警。
+        同一频点可能有多台设备轮流使用，中值下降也可能是换了设备，需结合现场确认。
+      </p>
+    </div>
+  </section>
+</div>
+
+<footer>
+  判定依据：每个控制信道用“它自己发射时的电平”单独建基线（滚动中值），−3 dB 提醒、−6 dB 告警，需持续 2 秒才报、恢复 4 秒才撤。
+  站点长时间“无活动”只代表没人使用，不等于故障；单点测量无法区分“基站变弱”和“本地遮挡”。
+</footer>
+
+<script src="/app.js"></script>
+</body>
+</html>

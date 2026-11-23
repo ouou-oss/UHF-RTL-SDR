@@ -1,0 +1,10 @@
+# 运行时/本地产物
+.venv/
+__pycache__/
+*.pyc
+.bin/iqcap
+rssi.db
+rssi.db-*
+dashboard.log
+*.log
+.DS_Store
